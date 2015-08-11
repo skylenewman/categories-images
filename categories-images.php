@@ -1,11 +1,11 @@
 <?php
 /**
- * Plugin Name: Categories Images
- * Plugin URI: http://zahlan.net/blog/2012/06/categories-images/
+ * Plugin Name: Images and Links for Categories
+ * Plugin URI: https://github.com/skylenewman/categories-images
  * Description: Categories Images Plugin allow you to add an image to category or any custom term.
- * Author: Muhammad Said El Zahlan
- * Version: 2.5
- * Author URI: http://zahlan.net/
+ * Author: Kyle Newman; forked from Muhammad Said El Zahlan's "Categories Images" plugin
+ * Version: 1.0
+ * Author URI: https://github.com/skylenewman/categories-images
  */
 ?>
 <?php
@@ -56,10 +56,16 @@ function z_add_texonomy_field() {
 	}
 	
 	echo '<div class="form-field">
+		<label for="taxonomy_link">' . __('Link', 'zci') . '</label>
+		<input type="text" name="taxonomy_image" id="taxonomy_link" value="" />
+		<p class="description">Enter a URL to add a link to the category.</p>
+	</div>
+	<div class="form-field">
 		<label for="taxonomy_image">' . __('Image', 'zci') . '</label>
-		<input type="text" name="taxonomy_image" id="taxonomy_image" value="" />
+		<input type="text" name="taxonomy_image" id="taxonomy_image" value=""  placeholder="http://www.example.com/"  />
 		<br/>
 		<button class="z_upload_image_button button">' . __('Upload/Add image', 'zci') . '</button>
+		<p class="description">Add an image to add to the category.</p>
 	</div>'.z_script();
 }
 
@@ -71,7 +77,21 @@ function z_edit_texonomy_field($taxonomy) {
 		wp_enqueue_style('thickbox');
 		wp_enqueue_script('thickbox');
 	}
-	
+	// TODO
+	if (z_taxonomy_link_url( $taxonomy->term_id, NULL, TRUE ) == Z_IMAGE_PLACEHOLDER) 
+		$link_text = "";
+	else
+		$link_text = z_taxonomy_link_url( $taxonomy->term_id, NULL, TRUE );
+	echo '<tr class="form-field">
+		<th scope="row" valign="top"><label for="taxonomy_link">' . __('Link', 'zci') . '</label></th>
+		<td>
+		<br/>
+		<input type="text" name="taxonomy_link" id="taxonomy_link" value="'.$link_text.'" placeholder="http://www.example.com/" />
+		<p id="taxonomy_link_error" class="hidden error">Invalid URL</p>
+		<p class="description">Enter a URL to add a link to the category.</p>
+		</td>
+	</tr>';
+	// echo validate_url();
 	if (z_taxonomy_image_url( $taxonomy->term_id, NULL, TRUE ) == Z_IMAGE_PLACEHOLDER) 
 		$image_text = "";
 	else
@@ -81,8 +101,29 @@ function z_edit_texonomy_field($taxonomy) {
 		<td><img class="taxonomy-image" src="' . z_taxonomy_image_url( $taxonomy->term_id, NULL, TRUE ) . '"/><br/><input type="text" name="taxonomy_image" id="taxonomy_image" value="'.$image_text.'" /><br />
 		<button class="z_upload_image_button button">' . __('Upload/Add image', 'zci') . '</button>
 		<button class="z_remove_image_button button">' . __('Remove image', 'zci') . '</button>
+		<p class="description">Add an image to add to the category.</p>
 		</td>
 	</tr>'.z_script();
+}
+function validate_url()
+{
+	return "<script type='text/javascript'>
+				function isUrlValid(url) {
+			    	return /^(https?|s?ftp):\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)*)*)?)?(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|\/|\?)*)?$/i.test(url);
+				}
+				jQuery(document).ready(function(){
+					jQuery('#taxonomy_link').change(function(){
+						if (!isUrlValid(jQuery('#taxonomy_link')))
+						{
+							jQuery('#taxonomy_link_error').removeClass('hidden');
+						}
+						else
+						{
+							jQuery('#taxonomy_link_error').addClass('hidden');
+						}
+					});
+				});
+			</script>";
 }
 
 // upload using wordpress upload
@@ -158,6 +199,8 @@ function z_script() {
 add_action('edit_term','z_save_taxonomy_image');
 add_action('create_term','z_save_taxonomy_image');
 function z_save_taxonomy_image($term_id) {
+    if(isset($_POST['taxonomy_link']))
+        update_option('z_taxonomy_link'.$term_id, $_POST['taxonomy_link']);
     if(isset($_POST['taxonomy_image']))
         update_option('z_taxonomy_image'.$term_id, $_POST['taxonomy_image']);
 }
@@ -196,6 +239,19 @@ function z_taxonomy_image_url($term_id = NULL, $size = NULL, $return_placeholder
 		return ($taxonomy_image_url != '') ? $taxonomy_image_url : Z_IMAGE_PLACEHOLDER;
 	else
 		return $taxonomy_image_url;
+}
+// get taxonomy image url for the given term_id (Place holder image by default)
+function z_taxonomy_link_url($term_id = NULL, $size = NULL, $return_placeholder = FALSE) {
+	if (!$term_id) {
+		if (is_category())
+			$term_id = get_query_var('cat');
+		elseif (is_tax()) {
+			$current_term = get_term_by('slug', get_query_var('term'), get_query_var('taxonomy'));
+			$term_id = $current_term->term_id;
+		}
+	}
+	
+    return get_option('z_taxonomy_link'.$term_id);
 }
 
 function z_quick_edit_custom_box($column_name, $screen, $name) {
@@ -262,20 +318,20 @@ if ( strpos( $_SERVER['SCRIPT_NAME'], 'edit-tags.php' ) > 0 ) {
 // New menu submenu for plugin options in Settings menu
 add_action('admin_menu', 'z_options_menu');
 function z_options_menu() {
-	add_options_page(__('Categories Images settings', 'zci'), __('Categories Images', 'zci'), 'manage_options', 'zci-options', 'zci_options');
+	add_options_page(__('Images and Links for Categories settings', 'zci'), __('Images and Links for Categories', 'zci'), 'manage_options', 'zci-options', 'zci_options');
 	add_action('admin_init', 'z_register_settings');
 }
 
 // Register plugin settings
 function z_register_settings() {
 	register_setting('zci_options', 'zci_options', 'z_options_validate');
-	add_settings_section('zci_settings', __('Categories Images settings', 'zci'), 'z_section_text', 'zci-options');
+	add_settings_section('zci_settings', __('Images and Links for Categories settings', 'zci'), 'z_section_text', 'zci-options');
 	add_settings_field('z_excluded_taxonomies', __('Excluded Taxonomies', 'zci'), 'z_excluded_taxonomies', 'zci-options', 'zci_settings');
 }
 
 // Settings section description
 function z_section_text() {
-	echo '<p>'.__('Please select the taxonomies you want to exclude it from Categories Images plugin', 'zci').'</p>';
+	echo '<p>'.__('Please select the taxonomies you want to exclude it from Images and Links for Categories plugin', 'zci').'</p>';
 }
 
 // Excluded taxonomies checkboxs
@@ -300,7 +356,7 @@ function zci_options() {
 	?>
 	<div class="wrap">
 		<?php screen_icon(); ?>
-		<h2><?php _e('Categories Images', 'zci'); ?></h2>
+		<h2><?php _e('Images and Links for Categories', 'zci'); ?></h2>
 		<form method="post" action="options.php">
 			<?php settings_fields('zci_options'); ?>
 			<?php do_settings_sections('zci-options'); ?>
